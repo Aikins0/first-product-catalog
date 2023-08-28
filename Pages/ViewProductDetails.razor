@@ -1,0 +1,107 @@
+@using ProductCatalog.Client
+@page "/product/{id:int}"
+@using Models
+@inject NavigationManager NavigationManager
+
+
+<!-- Page Title -->
+<PageTitle>@title</PageTitle>
+
+<!-- Page Heading -->
+<h1>Product Details</h1>
+<h3>@title</h3>
+
+<!-- Conditional rendering based on whether 'product' is loaded -->
+@if (product is null)
+{
+    <p><em>Loading....</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <!-- Display product details without the EditForm -->
+            <div class="mb-3">
+                <label class="form-label">Name:</label>
+                <p>@product.Name</p>
+            </div>
+            <!-- Display other product details -->
+            <div class="mb-3">
+                <label class="form-label">Description:</label>
+                <p>@product.Description</p>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Price:</label>
+                <p>@product.Price</p>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Release Date:</label>
+                <p>@product.ReleaseDate</p>
+            </div>
+          <!-- Display the first image, if available -->
+@if (product?.Images != null && product.Images.Any())
+{
+    <img src="@product.Images.FirstOrDefault()" alt="Product Image" class="img-fluid">
+}
+else
+{
+    <p>No image available.</p>
+}
+
+
+            <!-- Back button to navigate back to the product list page -->
+            <button type="button" class="btn btn-primary" @onclick="@Cancel">Back</button>
+        </div>
+    </div>
+}
+
+@code {
+    // Input parameter for product ID
+    [Parameter]
+    public int? Id { get; set; }
+    public List<string>? Images { get; set; }
+
+    private Product? product;
+    private string title = string.Empty;
+
+    // Load product details based on ID or create a new product
+    protected override void OnParametersSet()
+    {
+        if (Id is not null)
+        {
+            // Retrieve product details from the service
+            Product foundProduct = ProductClient.GetProduct(Id.Value);
+
+            // Initialize 'product' with retrieved data
+            product = new Product
+            {
+                Id = foundProduct.Id,
+                Name = foundProduct.Name,
+                Description = foundProduct.Description,
+                Price = foundProduct.Price,
+                ReleaseDate = foundProduct.ReleaseDate,
+                Images = foundProduct.Images // Assuming you have an 'Images' property in the 'Product' class
+            };
+
+            title = $"Details for {product.Name}";
+        }
+        else
+        {
+            // Create a new product
+            product = new Product
+            {
+                Name = string.Empty,
+                Description = string.Empty,
+                ReleaseDate = DateTime.UtcNow
+            };
+
+            title = "New Product";
+        }
+    }
+
+    // Navigate back to the product list page
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

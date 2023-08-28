@@ -1,0 +1,173 @@
+﻿@using ProductCatalog.Client
+@page "/product"
+@page "/product/{id:int}/edit"
+@using Models
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Forms 
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Components.Web 
+@* @inject IFileUploadService FileUploadService *@
+
+
+<!-- Page Title -->
+<PageTitle>@title</PageTitle>
+
+<!-- Page Heading -->
+<h1>Product Catalog</h1>
+<h3>@title</h3>
+
+<!-- Conditional rendering based on whether 'product' is loaded -->
+@if (product is null)
+{
+    <p><em>Loading....</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-sm-4">
+            <!-- EditForm to edit product details -->
+            <EditForm Model="@product" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+
+                <!-- Input fields for various product attributes -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="product.Name" class="form-control"></InputText>
+                </div>
+                 <div class="mb-3">
+                <label for="description" class="form-label">Description:</label>
+                <InputText id="description" @bind-Value="product.Description" class="form-control">
+                </InputText>
+             </div>
+              <div class="mb-3">
+                <label for="price" class="form-label">Price:</label>
+                <InputNumber id="price" @bind-Value="product.Price" class="form-control"></InputNumber>
+             </div>
+              <div class="mb-3">
+                <label for="releaseDate" class="form-label">Release Date:</label>
+                <InputDate id="releaseDate" @bind-Value="product.ReleaseDate" class="form-control"></InputDate>
+             </div>
+                <!-- More input fields for other attributes... -->
+
+                <!-- File upload section -->
+                <div class="mb-3">
+                    <label for="file" class="form-label">Upload Product Image:</label>
+                    <InputFile id="file" OnChange="HandleFileSelected"></InputFile>
+                </div>
+                <div class="mb-3">
+                     @* <button type="button" class="btn btn-primary" @onclick="Upload">Upload</button>  *@
+                </div>
+
+                <!-- Save and Cancel buttons -->
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    // Input parameter for product ID
+    [Parameter]
+    public int? Id { get; set; }
+
+    private Product? product;
+
+    private string title = string.Empty;
+
+    private IBrowserFile? file;
+
+    // Load product details based on ID or create a new product
+    protected override void OnParametersSet()
+    {
+        if (Id is not null)
+        {
+            // Retrieve product details from the service
+            Product foundProduct = ProductClient.GetProduct(Id.Value);
+
+            // Initialize 'product' with retrieved data
+            product = new()
+            {
+                Id = foundProduct.Id,
+                Name = foundProduct.Name,
+                Description = foundProduct.Description,
+                Price = foundProduct.Price,
+                ReleaseDate = foundProduct.ReleaseDate,
+                Images = foundProduct.Images
+            };
+
+            title = $"Edit {product.Name}";
+        }
+        else
+        {
+            // Create a new product
+            product = new() 
+            {
+                Name = string.Empty,
+                Description = string.Empty,
+                ReleaseDate = DateTime.UtcNow
+            };
+
+            title = "New Product";
+        }
+    }
+
+    // Handle file selection for upload
+     private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+     //  file = e.File;
+   // }
+    // Handle file upload
+   // private async Task Upload()
+//{
+  //  if (file != null)
+  //  {
+        // Use FileUploadService to handle the file upload
+        @* string uploadedFilePath = await FileUploadService.UploadFileAsync(file); *@
+
+        // Ensure the directory exists
+        @* var uploadDirectory = Path.Combine("C:\\Workspace\\ProductCatalog\\ProductCatalog.Client", "wwwroot", "upload");
+        if (!Directory.Exists(uploadDirectory))
+        {
+            Directory.CreateDirectory(uploadDirectory);
+        }
+
+        // Update the product's Images property with the uploaded image path
+        if (product.Images == null)
+        {
+            product.Images = new List<string>();
+        }
+        product.Images.Add(uploadedFilePath); *@
+  //  }
+}  
+
+
+    // Handle form submission
+    private void HandleSubmit()
+    {
+        if (product!.Id == 0)
+        {
+            // Add new product
+            ProductClient.AddProduct(product);
+        }
+        else
+        {
+            // Update existing product
+            ProductClient.UpdateProduct(product);
+        }
+
+        // Navigate back to the product list page
+        NavigationManager.NavigateTo("/");
+    }
+
+    // Handle cancellation
+    private void Cancel()
+    {
+        if (product != null)
+    {
+        // Navigate back to the product list page
+        NavigationManager.NavigateTo("/");
+    }
+    }    
+}

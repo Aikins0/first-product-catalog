@@ -1,0 +1,57 @@
+﻿@using ProductCatalog.Client
+
+@using Models
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!-- Modal title displaying the name of the product to be deleted -->
+        <h1 class="modal-title fs-5" id="deleteModalLabel">@title</h1>
+        <!-- Button to close the modal -->
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-footer">
+        <!-- Cancel button to dismiss the modal and trigger the Cancel method -->
+        <button type="button" 
+                class="btn btn-secondary" 
+                data-bs-dismiss="modal"
+                @onclick="@Cancel">Cancel</button>
+        <!-- Delete button to confirm deletion and trigger the Confirm method -->
+        <button type="button" 
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+                @onclick="@Confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+    // Input parameter for the product to be deleted
+    [Parameter]
+    public Product? Product { get; set; }
+
+    // Event callback to handle modal closure
+    [Parameter]
+    public EventCallback<bool> OnClose { get; set; } 
+
+    private string title = string.Empty;
+
+    // Set the modal title based on the product name
+    protected override void OnParametersSet()
+    {
+        title = $"Delete {Product?.Name}?";
+    }
+
+    // Method to confirm deletion and trigger the OnClose callback with 'true'
+    private void Confirm()
+    {
+        OnClose.InvokeAsync(true); 
+    }
+
+    // Method to cancel deletion and trigger the OnClose callback with 'false'
+    private void Cancel()
+    {
+        OnClose.InvokeAsync(false); 
+    }
+}
